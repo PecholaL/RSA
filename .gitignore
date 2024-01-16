@@ -1,8 +1,11 @@
+# Custom
+_TEST_ONLY_/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
-**/__pycache___/
+*/__pycache___/
 
 # C extensions
 *.so
