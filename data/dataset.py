@@ -18,7 +18,7 @@ class CollateFn(object):
         return tensor
 
 
-class AWdataset(Dataset):
+class SAdataset(Dataset):
     def __init__(self, pickle_path):
         with open(pickle_path, "rb") as f:
             self.data = pickle.load(f)
