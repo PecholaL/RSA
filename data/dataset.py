@@ -31,7 +31,7 @@ class SAdataset(Dataset):
         return len(self.data)
 
 
-def get_data_loader(dataset, batch_size, shuffle=True, num_workers=4, drop_last=False):
+def get_data_loader(dataset, batch_size, shuffle=True, num_workers=0, drop_last=False):
     _collate_fn = CollateFn()
     dataLoader = DataLoader(
         dataset=dataset,

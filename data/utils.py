@@ -14,15 +14,11 @@ import numpy
 
 def read_resample(audio_path, sr=16000, audio_limit_len=None):
     assert os.path.exists(audio_path)
-    # get file extension (i.e. wav, mp3, flac)
-    audio_type = audio_path.split(".")[-1].lower()
 
-    if audio_type == "mp3":
-        data, origin_sr = librosa.load(audio_path, sr=None)
-    elif audio_type in ["wav", "flac"]:
-        data, origin_sr = soundfile.read(audio_path)
-    else:
-        raise Exception("[Error]unsupported file type: " + audio_type)
+    data, origin_sr = soundfile.read(audio_path)
+
+    # trim
+    data, _ = librosa.effects.trim(data)
 
     # resample
     if origin_sr != sr:

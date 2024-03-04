@@ -1,5 +1,5 @@
 """ Process audio data
-    * Read from .mp3, .flac, .wav files
+    * Read from .wav files
     * Build Dataset
 """
 
@@ -31,13 +31,13 @@ if __name__ == "__main__":
     for root_path, dirs, files in os.walk(data_path):
         for file in files:
             file_path = os.path.join(root_path, file)
-            if file_path.split(".")[-1].lower() in ["mp3", "flac", "wav"]:
+            if file_path.split(".")[-1] == "wav":
                 audio_path_list.append(file_path)
     random.shuffle(audio_path_list)
     print(f"[Dataset]got {len(audio_path_list)} audio files")
 
     for i, audio_path in enumerate(audio_path_list):
-        # Read & Resample
+        # Read & Trim & Resample
         audio, _, _ = read_resample(
             audio_path=audio_path, sr=sample_rate, audio_limit_len=None
         )

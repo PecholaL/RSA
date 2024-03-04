@@ -1,4 +1,4 @@
-# Data process configuration
+# Data Process Configuration
 data_path: '/Users/pecholalee/Coding/SpkAno/miniSAdata' # Modify it!
 out_path: '/Users/pecholalee/Coding/SpkAno/miniSAdata_pickle' # Modify it!
 sample_rate: 16000
