@@ -1,5 +1,5 @@
 # Data Process Configuration
-data_path: '/Users/pecholalee/Coding/SpkAno/miniSAdata' # Modify it!
+data_path: '/Users/pecholalee/Coding/SpkAno/miniSAdataset' # Modify it!
 out_path: '/Users/pecholalee/Coding/SpkAno/miniSAdata_pickle' # Modify it!
 sample_rate: 16000
 audio_limit_len: 10 # unit: second
