@@ -1,7 +1,7 @@
-# RSAno
+# RSA
 Restorable Speaker Anonymization via Invertible Neural Network
 
-# Training RSAno
+# Training RSA
 ## Data Processing
 1. Modify `./data/config.yaml` according to the location of your prepared dataset.
 2. Preprocess the .wav files, build Dataset and dump into pickle:

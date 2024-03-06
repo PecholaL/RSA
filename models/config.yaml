@@ -1,0 +1,9 @@
+ASCG:
+  struct:
+  train:
+    lr=1e-8
+    weight_decay=1e-5
+
+RSA:
+  struct:
+  train:

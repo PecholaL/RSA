@@ -1,5 +1,5 @@
 """ Modified from DeepMIH
-    configuration is at RSAno/models/config.yaml
+    configuration is at RSA/models/config.yaml
 """
 
 import torch.nn as nn
