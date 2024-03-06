@@ -16,7 +16,7 @@ class ASCG(nn.Module):
         with open(config_path) as f:
             self.config = yaml.load(f, Loader=yaml.FullLoader)
 
-        self.cinn = self.build_inn(self.config)
+        self.cinn = self.build_cinn(self.config)
         self.trainable_parameters = [
             p for p in self.cinn.parameters() if p.requires_grad
         ]
@@ -29,7 +29,13 @@ class ASCG(nn.Module):
             weight_decay=["ASCG"]["training"]["weight_decay"],
         )
 
-    def build_inn(config):
+    """ build the conditional INN
+            input: noise, 
+            condition: key
+            output: condition for RSA
+    """
+
+    def build_cinn(config):
         def subnet():
             return nn.Sequential(
                 nn.Linear(config["ASCG"]["struct"]["ch_in"], 512),
@@ -38,10 +44,10 @@ class ASCG(nn.Module):
             )
 
         cond = Ff.ConditionNode(config["ASCG"]["struct"]["cond_node_size"])
-        nodes = [Ff.InputNode()]
+        nodes = [Ff.InputNode(1, 1, config["ASCG"]["struct"]["input_size"])]
+        nodes.append(Ff.Node(nodes[-1], Fm.Flatten, {}))  # nodes: [node0, node1]
 
-        nodes.append(Ff.Node(nodes[-1], Fm.Flatten, {}))
-        for k in range(20):
+        for k in range(config["ASCG"]["struct"]["layers"]):
             nodes.append(Ff.Node(nodes[-1], Fm.PermuteRandom, {"seed": k}))
             nodes.append(
                 Ff.Node(

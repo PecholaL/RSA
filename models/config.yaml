@@ -3,6 +3,7 @@ ASCG:
     ch_in=
     ch_out=
     cond_node_size=10
+    layers=10
   training:
     lr=1e-8
     weight_decay=1e-5
