@@ -1,4 +1,4 @@
-""" Anonymous Speaker Condition Generator
+""" Anonymization Condition Generator
 """
 
 import torch
@@ -10,7 +10,7 @@ import FrEIA.modules as Fm
 import yaml
 
 
-class ASCG(nn.Module):
+class ACG(nn.Module):
     def __init__(self, config_path) -> None:
         super().__init__()
         with open(config_path) as f:
@@ -25,8 +25,8 @@ class ASCG(nn.Module):
 
         self.optim = torch.optim.Adam(
             self.trainable_parameters,
-            lr=self.config["ASCG"]["training"]["lr"],
-            weight_decay=["ASCG"]["training"]["weight_decay"],
+            lr=self.config["ACG"]["training"]["lr"],
+            weight_decay=["ACG"]["training"]["weight_decay"],
         )
 
     """ build the conditional INN
@@ -38,16 +38,16 @@ class ASCG(nn.Module):
     def build_cinn(config):
         def subnet():
             return nn.Sequential(
-                nn.Linear(config["ASCG"]["struct"]["ch_in"], 512),
+                nn.Linear(config["ACG"]["struct"]["ch_in"], 512),
                 nn.ReLU(),
-                nn.Linear(512, config["ASCG"]["struct"]["ch_out"]),
+                nn.Linear(512, config["ACG"]["struct"]["ch_out"]),
             )
 
-        cond = Ff.ConditionNode(config["ASCG"]["struct"]["cond_node_size"])
-        nodes = [Ff.InputNode(1, 1, config["ASCG"]["struct"]["input_size"])]
+        cond = Ff.ConditionNode(config["ACG"]["struct"]["cond_node_size"])
+        nodes = [Ff.InputNode(1, 1, config["ACG"]["struct"]["input_size"])]
         nodes.append(Ff.Node(nodes[-1], Fm.Flatten, {}))  # nodes: [node0, node1]
 
-        for k in range(config["ASCG"]["struct"]["layers"]):
+        for k in range(config["ACG"]["struct"]["layers"]):
             nodes.append(Ff.Node(nodes[-1], Fm.PermuteRandom, {"seed": k}))
             nodes.append(
                 Ff.Node(
