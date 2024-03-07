@@ -1,8 +1,7 @@
 ACG:
   struct:
-    ch_in=
-    ch_out=
-    cond_node_size=10
+    f_in=
+    f_out=
     layers=10
   training:
     lr=1e-8

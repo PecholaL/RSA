@@ -16,9 +16,9 @@ class ACG(nn.Module):
         with open(config_path) as f:
             self.config = yaml.load(f, Loader=yaml.FullLoader)
 
-        self.cinn = self.build_cinn(self.config)
+        self.inn = self.build_inn(self.config)
         self.trainable_parameters = [
-            p for p in self.cinn.parameters() if p.requires_grad
+            p for p in self.inn.parameters() if p.requires_grad
         ]
         for p in self.trainable_parameters:
             p.data = 0.01 * torch.randn_like(p)
@@ -29,43 +29,36 @@ class ACG(nn.Module):
             weight_decay=["ACG"]["training"]["weight_decay"],
         )
 
-    """ build the conditional INN
-            input: noise, 
-            condition: key
-            output: condition for RSA
+    """ build the INN
+            input: key, 
+            output: condition for RSA.anonymizer
     """
 
-    def build_cinn(config):
+    def build_inn(config):
+        # full connected subnet (i.e. φ,ψ,ρ,η) for the INN block
         def subnet():
             return nn.Sequential(
-                nn.Linear(config["ACG"]["struct"]["ch_in"], 512),
+                nn.Linear(config["ACG"]["struct"]["f_in"], ["ACG"]["struct"]["f_mid"]),
                 nn.ReLU(),
-                nn.Linear(512, config["ACG"]["struct"]["ch_out"]),
+                nn.Linear(["ACG"]["struct"]["f_mid"], config["ACG"]["struct"]["f_out"]),
             )
 
-        cond = Ff.ConditionNode(config["ACG"]["struct"]["cond_node_size"])
+        inn = Ff.SequenceINN(2)
+        for k in range(8):
+            inn.append(Fm.AllInOneBlock, subnet_constructor=subnet, permute_soft=True)
+
         nodes = [Ff.InputNode(1, 1, config["ACG"]["struct"]["input_size"])]
         nodes.append(Ff.Node(nodes[-1], Fm.Flatten, {}))  # nodes: [node0, node1]
 
         for k in range(config["ACG"]["struct"]["layers"]):
             nodes.append(Ff.Node(nodes[-1], Fm.PermuteRandom, {"seed": k}))
-            nodes.append(
-                Ff.Node(
-                    nodes[-1],
-                    Fm.GLOWCouplingBlock,
-                    {"subnet_constructor": subnet, "clamp": 1.0},
-                    conditions=cond,
-                )
-            )
 
-        return Ff.ReversibleGraphNet(
-            nodes + [cond, Ff.OutputNode(nodes[-1])], verbose=False
-        )
+        return Ff.ReversibleGraphNet(nodes, verbose=False)
 
-    def forward(self, x, cond):
-        z = self.cinn(x, cond)
-        jac = self.cinn.log_jacobian(run_forward=False)
+    def forward(self, x):
+        z = self.inn(x)
+        jac = self.inn.log_jacobian(run_forward=False)
         return z, jac
 
-    def reverse_sample(self, z, cond):
-        return self.cinn(z, cond, rev=True)
+    def reverse_sample(self, z):
+        return self.inn(z, rev=True)
