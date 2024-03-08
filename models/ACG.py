@@ -16,7 +16,7 @@ class ACG(nn.Module):
         with open(config_path) as f:
             self.config = yaml.load(f, Loader=yaml.FullLoader)
 
-        self.inn = self.build_inn(self.config)
+        self.inn = self.build_inn()
         self.trainable_parameters = [
             p for p in self.inn.parameters() if p.requires_grad
         ]
@@ -26,7 +26,7 @@ class ACG(nn.Module):
         self.optim = torch.optim.Adam(
             self.trainable_parameters,
             lr=self.config["ACG"]["training"]["lr"],
-            weight_decay=["ACG"]["training"]["weight_decay"],
+            weight_decay=self.config["ACG"]["training"]["weight_decay"],
         )
 
     """ build the INN
@@ -34,23 +34,29 @@ class ACG(nn.Module):
             output: condition for RSA.anonymizer
     """
 
-    def build_inn(config):
+    def build_inn(self):
         # full connected subnet (i.e. φ,ψ,ρ,η) for the INN block
-        def subnet():
+        def subnet(f_in, f_out):
             return nn.Sequential(
-                nn.Linear(config["ACG"]["struct"]["f_in"], ["ACG"]["struct"]["f_mid"]),
+                nn.Linear(
+                    self.config["ACG"]["struct"]["f_in"],
+                    self.config["ACG"]["struct"]["f_mid"],
+                ),
                 nn.ReLU(),
-                nn.Linear(["ACG"]["struct"]["f_mid"], config["ACG"]["struct"]["f_out"]),
+                nn.Linear(
+                    self.config["ACG"]["struct"]["f_mid"],
+                    self.config["ACG"]["struct"]["f_out"],
+                ),
             )
 
         inn = Ff.SequenceINN(2)
         for k in range(8):
             inn.append(Fm.AllInOneBlock, subnet_constructor=subnet, permute_soft=True)
 
-        nodes = [Ff.InputNode(1, 1, config["ACG"]["struct"]["input_size"])]
+        nodes = [Ff.InputNode(self.config["ACG"]["struct"]["input_size"])]
         nodes.append(Ff.Node(nodes[-1], Fm.Flatten, {}))  # nodes: [node0, node1]
 
-        for k in range(config["ACG"]["struct"]["layers"]):
+        for k in range(self.config["ACG"]["struct"]["layers"]):
             nodes.append(Ff.Node(nodes[-1], Fm.PermuteRandom, {"seed": k}))
 
         return Ff.ReversibleGraphNet(nodes, verbose=False)
