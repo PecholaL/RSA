@@ -3,7 +3,6 @@
 
 import numpy
 import torch
-import torch.nn as nn
 import torch.optim
 import yaml
 
@@ -14,6 +13,7 @@ from data.dataset import SAdataset, get_data_loader, infinite_iter
 config_path = "./models/config.yaml"
 ckpt_path = "../SpkAno/RSA_data/save/acg.ckpt"
 pickle_path = "../SpkAno/RSA_data/miniSAdata_pickle/audio.pkl"
+asv_ckpt_path = "../SpkAno/RSA_data/save/asv.ckpt"
 
 # _____________________________
 
@@ -35,8 +35,11 @@ summary_steps = config["ACG"]["training"]["summary_steps"]
 autosave_steps = config["ACG"]["training"]["autosave_steps"]
 batch_size = config["ACG"]["training"]["batch_size"]
 num_workers = config["ACG"]["training"]["num_workers"]
+
 scheduler = torch.optim.lr_scheduler.MultiStepLR(
-    acg.optimizer, milestones=[20, 40], gamma=0.1
+    acg.optimizer,
+    milestones=[int(n_iterations * 0.6), int(n_iterations * 0.8)],
+    gamma=0.1,
 )
 
 nll_mean = []
@@ -54,6 +57,7 @@ print("[RSA](stage 1): DataLoader is built. ")
 for i in range(n_iterations):
     # data
     data = next(train_iter).to(torch.float32).cuda()
+    target = data
     # forward
     z, log_j = acg(data)
     # loss
