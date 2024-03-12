@@ -20,13 +20,14 @@ class ACG(nn.Module):
         self.trainable_parameters = [
             p for p in self.inn.parameters() if p.requires_grad
         ]
+        print("okkk", self.trainable_parameters)
         for p in self.trainable_parameters:
             p.data = 0.01 * torch.randn_like(p)
 
         self.optim = torch.optim.Adam(
             self.trainable_parameters,
-            lr=self.config["ACG"]["training"]["lr"],
-            weight_decay=self.config["ACG"]["training"]["weight_decay"],
+            lr=float(self.config["ACG"]["training"]["lr"]),
+            weight_decay=float(self.config["ACG"]["training"]["weight_decay"]),
         )
 
     """ build the INN
@@ -36,7 +37,7 @@ class ACG(nn.Module):
 
     def build_inn(self):
         # full connected subnet (i.e. φ,ψ,ρ,η) for the INN block
-        def subnet(f_in, f_out):
+        def subnet():
             return nn.Sequential(
                 nn.Linear(
                     self.config["ACG"]["struct"]["f_in"],
@@ -59,7 +60,7 @@ class ACG(nn.Module):
         for k in range(self.config["ACG"]["struct"]["layers"]):
             nodes.append(Ff.Node(nodes[-1], Fm.PermuteRandom, {"seed": k}))
 
-        return Ff.ReversibleGraphNet(nodes, verbose=False)
+        return Ff.ReversibleGraphNet(nodes + [Ff.OutputNode(nodes[-1])], verbose=False)
 
     def forward(self, x):
         z = self.inn(x)
