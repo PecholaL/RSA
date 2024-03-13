@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 
 
-BASE_DIR = "/Users/pecholalee/Coding/tools/speechbrain/speechbrain"
+BASE_DIR = "/Users/pecholalee/Coding/tools/speechbrain"
 
 if Path(BASE_DIR).exists():
     sys.path.append(BASE_DIR)
