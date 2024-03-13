@@ -51,8 +51,14 @@ class ACG(nn.Module):
                 ),
             )
 
-        cond = Ff.ConditionNode(8)
-        nodes = [Ff.InputNode(1, 1, int(self.config["ACG"]["struct"]["input_size"]))]
+        cond = Ff.ConditionNode(1)
+        nodes = [
+            Ff.InputNode(
+                1,
+                1,
+                int(self.config["ACG"]["struct"]["input_size"]),
+            )
+        ]
 
         nodes.append(Ff.Node(nodes[-1], Fm.Flatten, {}))  # nodes: [node0, node1]
 
@@ -67,12 +73,12 @@ class ACG(nn.Module):
                 )
             )
 
-        return Ff.ReversibleGraphNet(nodes + [Ff.OutputNode(nodes[-1])], verbose=False)
+        return Ff.ReversibleGraphNet(
+            nodes + [cond, Ff.OutputNode(nodes[-1])], verbose=False
+        )
 
     def forward(self, x, cond):
-        z = self.inn(x, cond)
-        jac = self.inn.log_jacobian(run_forward=False)
-        return z, jac
+        return self.inn(x, cond)
 
     def reverse_sample(self, z, cond):
         return self.inn(z, cond, rev=True)

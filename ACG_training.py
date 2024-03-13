@@ -55,20 +55,30 @@ print("[RSA](stage 1): DataLoader is built. ")
 
 # Training
 for i in range(n_iterations):
-    # data
-    data = next(train_iter).to(torch.float32).cuda()
-    target = data
-    # forward
-    z, log_j = acg(data)
-    # loss
+    """data"""
+    data = next(train_iter).to(torch.float32)  # .cuda()
+    target = data  # get x-vector
+    cond = cond = torch.tensor(
+        [
+            [
+                0,
+            ]
+        ]
+    )  # static condition (i.e. no condition)
+
+    """forward"""
+    z, log_j = acg(data, cond)
+
+    """loss"""
     nll = torch.mean(z**2) / 2 - torch.mean(log_j) / acg.ndim_total
-    # backward
+
+    """backward"""
     nll.backward()
     torch.nn.utils.clip_grad_norm_(acg.trainable_parameters, 10.0)
     acg.optimizer.step()
     acg.optimizer.zero_grad()
 
-    # log
+    """log"""
     nll_mean.append(nll.item())
     print(
         f"[RSA](stage 1): [{i}/{n_iterations}]",
@@ -78,6 +88,6 @@ for i in range(n_iterations):
     if (i + 1) % summary_steps == 0 or i + 1 == n_iterations:
         print()
 
-    # auto save
+    """auto save"""
     if (i + 1) % autosave_steps == 0 or i + 1 == n_iterations:
         torch.save(acg.state_dict(), ckpt_path)
