@@ -1,17 +1,17 @@
 ACG:
   struct:
-    input_size: 512
+    input_size: 192
     f_in: 512
     f_mid: 512
     f_out: 512
-    layers: 10
+    layers: 3
   training:
     batch_size: 1
     num_workers: 0
     lr: 1e-8
     weight_decay: 1e-5
-    n_iterations: 10
-    summary_steps: 5
+    n_iterations: 5
+    summary_steps: 2
 
 RSA:
   struct:

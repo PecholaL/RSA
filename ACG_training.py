@@ -12,7 +12,7 @@ from speech_brain_proxy import EncoderClassifier
 
 config_path = "./models/config.yaml"
 ckpt_path = "../SpkAno/RSA_data/save/acg.ckpt"
-pickle_path = "../SpkAno/RSA_data/miniSAdata_pickle/audio.pkl"
+pickle_path = "../SpkAno/RSA_data/miniSAdata_pickle/acg_audio.pkl"
 asv_ckpt_path = "../SpkAno/RSA_data/save/asv.ckpt"
 
 # _____________________________
@@ -25,7 +25,8 @@ print(
         sum(x.numel() for x in acg.parameters())
     )
 )
-
+asv = EncoderClassifier.from_hparams(source="speechbrain/spkrec-ecapa-voxceleb")
+print("[RSA](stage 1): ASV from SpeechBrain is built. ")
 
 # Setup
 with open(config_path) as f:
@@ -57,7 +58,7 @@ print("[RSA](stage 1): DataLoader is built. ")
 for i in range(n_iterations):
     """data"""
     data = next(train_iter).to(torch.float32)  # .cuda()
-    target = data  # get x-vector
+    input_data = asv.encode_batch(data)  # get x-vector
     cond = cond = torch.tensor(
         [
             [
@@ -67,7 +68,10 @@ for i in range(n_iterations):
     )  # static condition (i.e. no condition)
 
     """forward"""
-    z, log_j = acg(data, cond)
+    print("input_data.shape: ", input_data.shape)
+    print("cond shape: ", cond.shape)
+    z, log_j = acg(input_data, cond)
+    print("z.shape: ", z.shape)
 
     """loss"""
     nll = torch.mean(z**2) / 2 - torch.mean(log_j) / acg.ndim_total
