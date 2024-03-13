@@ -17,6 +17,7 @@ class ACG(nn.Module):
             self.config = yaml.load(f, Loader=yaml.FullLoader)
 
         self.inn = self.build_inn()
+        self.ndim_total = int(self.config["ACG"]["struct"]["input_size"]) * 1
 
         self.trainable_parameters = [
             p for p in self.inn.parameters() if p.requires_grad

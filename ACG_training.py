@@ -12,7 +12,7 @@ from speech_brain_proxy import EncoderClassifier
 
 config_path = "./models/config.yaml"
 ckpt_path = "../SpkAno/RSA_data/save/acg.ckpt"
-pickle_path = "../SpkAno/RSA_data/miniSAdata_pickle/acg_audio.pkl"
+pickle_path = "../SpkAno/miniSAdata_pickle/acg_audio.pkl"
 asv_ckpt_path = "../SpkAno/RSA_data/save/asv.ckpt"
 
 # _____________________________
@@ -38,7 +38,7 @@ batch_size = config["ACG"]["training"]["batch_size"]
 num_workers = config["ACG"]["training"]["num_workers"]
 
 scheduler = torch.optim.lr_scheduler.MultiStepLR(
-    acg.optimizer,
+    acg.optim,
     milestones=[int(n_iterations * 0.6), int(n_iterations * 0.8)],
     gamma=0.1,
 )
@@ -68,10 +68,12 @@ for i in range(n_iterations):
     )  # static condition (i.e. no condition)
 
     """forward"""
-    print("input_data.shape: ", input_data.shape)
-    print("cond shape: ", cond.shape)
     z, log_j = acg(input_data, cond)
-    print("z.shape: ", z.shape)
+    # print("input_data.shape: ", input_data.shape)
+    # print("cond shape: ", cond.shape)
+    # print("z.shape: ", z.shape)
+    # print("log_j.shape: ", log_j.shape)
+    # print("log_j: ", log_j)
 
     """loss"""
     nll = torch.mean(z**2) / 2 - torch.mean(log_j) / acg.ndim_total
@@ -79,8 +81,8 @@ for i in range(n_iterations):
     """backward"""
     nll.backward()
     torch.nn.utils.clip_grad_norm_(acg.trainable_parameters, 10.0)
-    acg.optimizer.step()
-    acg.optimizer.zero_grad()
+    acg.optim.step()
+    acg.optim.zero_grad()
 
     """log"""
     nll_mean.append(nll.item())
