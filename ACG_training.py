@@ -8,7 +8,7 @@ import yaml
 
 from models.ACG import ACG
 from data.dataset import SAdataset, get_data_loader, infinite_iter
-
+from speech_brain_proxy import EncoderClassifier
 
 config_path = "./models/config.yaml"
 ckpt_path = "../SpkAno/RSA_data/save/acg.ckpt"
