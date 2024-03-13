@@ -14,6 +14,15 @@ ACG:
 
 RSA:
   struct:
+    input_size: 512
+    f_mid: 512
+    layers: 3
+    condition: 192
   training:
+    batch_size: 1
+    num_workers: 0
     lr: 1e-8
     weight_decay: 1e-5
+    n_iterations: 5
+    summary_steps: 2
+    autosave_steps: 5

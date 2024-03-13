@@ -9,7 +9,7 @@ Restorable Speaker Anonymization via Invertible Neural Network
 3. Test your Dataset and DataLoader:
     `python3 ./data/test_data.py`
 
-## Model Building
+## Model Building & Training
 ### ASV
 A pre-trained model from [SpeechBrain](https://huggingface.co/speechbrain/spkrec-ecapa-voxceleb) is utilized as the speaker embedding extractor for the training processes of ACG and RSA. The **EncoderClassifier** obtains 192-d speaker embedding from a piece of utterance. The package **pretrained_models** is built to link the packages of SpeechBrain, so modify the *BASE_DIR* in `./speech_brain_proxy/__init__.py` according to the path to the downloaded [*speechbrain-dev*](https://github.com/speechbrain/speechbrain).
 
