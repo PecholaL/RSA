@@ -1,6 +1,7 @@
 # Custom
 _TEST_ONLY_/
 */pretrained_models/
+pretrained_models/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
