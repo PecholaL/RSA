@@ -20,11 +20,11 @@ The first training stage is for ACG. Use the preprocessed .pkl which contains lo
 ### RSA
 
 
-## Inference
-### Anonymization
+# Inference
+## Anonymization
 
-### Restoring
+## Restoring
 
-### Thanks
+# Thanks
 
-### Citation
+# Citation
