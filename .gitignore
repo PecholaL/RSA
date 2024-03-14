@@ -2,6 +2,7 @@
 _TEST_ONLY_/
 */pretrained_models/
 pretrained_models/
+.DS_Store
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
