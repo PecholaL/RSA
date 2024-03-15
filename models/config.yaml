@@ -14,10 +14,12 @@ ACG:
 
 RSA:
   struct:
-    input_size: 512
-    f_mid: 512
-    layers: 3
-    condition: 192
+    cond_len: 192
+    c_in: 512
+    c_mid: 512
+    c_out: 512
+    cc_layers: 3
+    clamp: 1.5
   training:
     batch_size: 1
     num_workers: 0
