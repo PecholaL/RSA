@@ -15,11 +15,12 @@ ACG:
 RSA:
   struct:
     cond_len: 192
+    level: 2
     c_in: 512
     c_mid: 512
     c_out: 512
-    cc_layers: 3
-    n_blocks_fc: 2
+    cc_layers: 2
+    n_blocks: 1
   training:
     clamp: 1.5
     init_scale: 0.03

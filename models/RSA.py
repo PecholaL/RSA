@@ -11,29 +11,29 @@ import numpy as np
 
 from FrEIA.framework import *
 from FrEIA.modules import *
-from models.subnet_coupling import *
 import yaml
 
 
 """ HYPER PARAMETERS
     # load from config.yaml
 """
-config_path = "./models/config.yaml"  # excecute train_ACG.py in the base directory
+# config_path = "./models/config.yaml"  # excecute train_ACG.py in the base directory
+config_path = "../models/config.yaml"  # for test in _TEST_ONLY_ directory
 with open(config_path) as f:
     config = yaml.load(f, Loader=yaml.FullLoader)
-    feature_channels = config["RSA"]["struct"]["feature_channels"]
 
     """ hyper params for cond coupling block
     """
     # condition length
     cond_len = config["RSA"]["struct"]["cond_len"]
     # for subnet
+    level = config["RSA"]["struct"]["level"]
     c_in = config["RSA"]["struct"]["c_in"]
     c_mid = config["RSA"]["struct"]["c_mid"]
     c_out = config["RSA"]["struct"]["c_out"]
     cc_layers = config["RSA"]["struct"]["cc_layers"]
     # for cc
-    n_blocks_fc = config["RSA"]["struct"]["n_blocks_fc"]
+    n_blocks = config["RSA"]["struct"]["n_blocks"]
     # for training
     clamp = config["RSA"]["training"]["clamp"]  # for RNVP/GLOW coupling block
     init_scale = config["RSA"]["training"]["init_scale"]
@@ -50,23 +50,31 @@ with open(config_path) as f:
 
 # cond_subnet is composed of a set of conv layers
 # level: num of conv layers, level<=4
-def cond_subnet(level, c_in, c_mid, c_out):
+def cond_subnet(in_dim, out_dim):
     modules = []
-    c_intern = [c_in, c_mid, c_mid, c_mid]
+    print("subnet", in_dim, out_dim)
     for i in range(level):
-        modules.extend(
-            [
-                nn.Conv1d(c_intern[i], c_intern[i + 1], 3, stride=2, padding=1),
-                nn.LeakyReLU(),
-            ]
-        )
-    modules.append(nn.BatchNorm1d(2 * c_out))
+        if i == 0:
+            modules.extend(
+                [
+                    nn.Conv1d(in_dim, out_dim, 3, stride=2, padding=1),
+                    nn.LeakyReLU(),
+                ]
+            )
+        else:
+            modules.extend(
+                [
+                    nn.Conv1d(out_dim, out_dim, 3, stride=2, padding=1),
+                    nn.LeakyReLU(),
+                ]
+            )
+    modules.append(nn.BatchNorm1d(2 * out_dim))
     return nn.Sequential(*modules)
 
 
 def build_inn(nodes):
     nodes.append(Node([nodes[-1].out0], Flatten, {}, name="flatten"))
-    for i in range(n_blocks_fc):
+    for i in range(n_blocks):
         nodes.append(
             Node([nodes[-1].out0], PermuteRandom, {"seed": i}, name=f"permute_{i}")
         )
@@ -103,8 +111,11 @@ def load_model(ckpt_path):
     return
 
 
+""" BUILD MODEL
+"""
 cond_node = ConditionNode(cond_len)
-nodes = [InputNode(c_in, name="inp")]
+nodes = [InputNode(c_in, name="in")]
+build_inn(nodes)
 RSA_cINN = ReversibleGraphNet(nodes, verbose=False)
 init_model(RSA_cINN)
 params_trainable = list(filter(lambda p: p.requires_grad, RSA_cINN.parameters()))
