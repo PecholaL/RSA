@@ -1,5 +1,5 @@
 """ Main Module
-        Anonymizer (Restorer)
+        Anonymizer / Restorer
 """
 
 import warnings
@@ -12,11 +12,13 @@ import numpy as np
 from FrEIA.framework import *
 from FrEIA.modules import *
 from models.subnet_coupling import *
-import data
 import yaml
 
-config_path = ""
 
+""" HYPER PARAMETERS
+    # load from config.yaml
+"""
+config_path = "./models/config.yaml"  # excecute train_ACG.py in the base directory
 with open(config_path) as f:
     config = yaml.load(f, Loader=yaml.FullLoader)
     feature_channels = config["RSA"]["struct"]["feature_channels"]
@@ -30,74 +32,85 @@ with open(config_path) as f:
     c_mid = config["RSA"]["struct"]["c_mid"]
     c_out = config["RSA"]["struct"]["c_out"]
     cc_layers = config["RSA"]["struct"]["cc_layers"]
+    # for cc
+    n_blocks_fc = config["RSA"]["struct"]["n_blocks_fc"]
     # for training
-    clamp = config["RSA"]["struct"]["clamp"]  # for RNVP/GLOW coupling block
+    clamp = config["RSA"]["training"]["clamp"]  # for RNVP/GLOW coupling block
+    init_scale = config["RSA"]["training"]["init_scale"]
+    lr = float(config["RSA"]["training"]["lr"])
+    weight_decay = float(config["RSA"]["training"]["weight_decay"])
+    decay_by = float(config["RSA"]["training"]["decay_by"])
+    n_iterations = int(config["RSA"]["training"]["n_iterations"])
 
 
-conditions = [
-    ConditionNode(cond_len),
-]
-
-
-def random_orthog(n):
-    w = np.random.randn(n, n)
-    w = w + w.T
-    w, _, _ = np.linalg.svd(w)
-    return torch.FloatTensor(w)
+""" Anonymizer / Restorer
+    ################################################################################
+"""
 
 
 # cond_subnet is composed of a set of conv layers
 # level: num of conv layers, level<=4
 def cond_subnet(level, c_in, c_mid, c_out):
-    c_intern = [feature_channels, c_mid, c_mid, c_mid]
     modules = []
-
+    c_intern = [c_in, c_mid, c_mid, c_mid]
     for i in range(level):
         modules.extend(
             [
-                nn.Conv2d(c_intern[i], c_intern[i + 1], 3, stride=2, padding=1),
+                nn.Conv1d(c_intern[i], c_intern[i + 1], 3, stride=2, padding=1),
                 nn.LeakyReLU(),
             ]
         )
-
-    modules.append(nn.BatchNorm2d(2 * c_out))
-
+    modules.append(nn.BatchNorm1d(2 * c_out))
     return nn.Sequential(*modules)
 
 
-fc_cond_net = nn.Sequential(
-    *[
-        nn.Conv2d(feature_channels, c_mid, 3, stride=2, padding=1),  # 32 x 32
-        nn.LeakyReLU(),
-        nn.Conv2d(c_mid, 2 * c_mid, 3, stride=2, padding=1),  # 16 x 16
-        nn.LeakyReLU(),
-        nn.Conv2d(2 * c_mid, 2 * c_mid, 3, stride=2, padding=1),  # 8 x 8
-        nn.LeakyReLU(),
-        nn.Conv2d(2 * c_mid, cond_len, 3, stride=2, padding=1),  # 4 x 4
-        nn.AvgPool2d(4),
-        nn.BatchNorm2d(cond_len),
-    ]
-)
-
-
-def _add_conditioned_section(nodes, depth, channels_in, channels, cond_level):
-
-    for k in range(depth):
+def build_inn(nodes):
+    nodes.append(Node([nodes[-1].out0], Flatten, {}, name="flatten"))
+    for i in range(n_blocks_fc):
+        nodes.append(
+            Node([nodes[-1].out0], PermuteRandom, {"seed": i}, name=f"permute_{i}")
+        )
         nodes.append(
             Node(
                 [nodes[-1].out0],
-                subnet_coupling_layer,
-                {
-                    "clamp": clamp,
-                    "F_class": F_conv,
-                    "subnet": cond_subnet(cond_level, channels // 2),
-                    "sub_len": channels,
-                    "F_args": {"leaky_slope": 5e-2, "channels_hidden": channels},
-                },
-                conditions=[conditions[0]],
-                name=f"conv_{k}",
+                GLOWCouplingBlock,
+                {"subnet_constructor": cond_subnet, "clamp": clamp},
+                conditions=[cond_node],
+                name=f"GLOW_CC_{i}",
             )
         )
-        nodes.append(
-            Node([nodes[-1].out0], conv_1x1, {"M": random_orthog(channels_in)})
-        )
+    nodes.append(OutputNode([nodes[-1].out0], name="out"))
+    nodes.append(cond_node)
+    return
+
+
+def init_model(mod):
+    for key, param in mod.named_parameters():
+        split = key.split(".")
+        if param.requires_grad:
+            param.data = init_scale * torch.randn(param.data.shape)  # .cuda()
+            if split[3][-1] == "3":  # last convolution in the coeff func
+                param.data.fill_(0.0)
+
+
+def save_model(ckpt_path):
+    torch.save(RSA_cINN.state_dict(), ckpt_path)
+    return
+
+
+def load_model(ckpt_path):
+    RSA_cINN.load_state_dict(ckpt_path)
+    return
+
+
+cond_node = ConditionNode(cond_len)
+nodes = [InputNode(c_in, name="inp")]
+RSA_cINN = ReversibleGraphNet(nodes, verbose=False)
+init_model(RSA_cINN)
+params_trainable = list(filter(lambda p: p.requires_grad, RSA_cINN.parameters()))
+
+gamma = (decay_by) ** (1.0 / 1500)
+optim = torch.optim.Adam(
+    params_trainable, lr=lr, betas=(0.9, 0.999), eps=1e-6, weight_decay=weight_decay
+)
+weight_scheduler = torch.optim.lr_scheduler.StepLR(optim, step_size=100, gamma=gamma)
