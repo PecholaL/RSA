@@ -19,10 +19,10 @@ RSA:
     c_in: 512
     c_mid: 512
     c_out: 512
+    clamp: 1.5
     cc_layers: 2
     n_blocks: 1
   training:
-    clamp: 1.5
     init_scale: 0.03
     batch_size: 1
     num_workers: 0
