@@ -14,14 +14,19 @@ ACG:
 
 RSA:
   struct:
-    cond_len: 192
-    level: 2
-    c_in: 512
-    c_mid: 512
-    c_out: 512
-    clamp: 1.5
-    cc_layers: 2
-    n_blocks: 1
+    basic:
+      cinnb_nums: 1
+    cinnblock:
+      channel: 40
+      clamp: 1.5
+      cond_len: 192
+      cond_trans: 128
+    # level: 2
+    # c_in: 512
+    # c_mid: 512
+    # c_out: 512
+    # cc_layers: 2
+    # n_blocks: 1
   training:
     init_scale: 0.03
     batch_size: 1
