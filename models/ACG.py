@@ -11,10 +11,9 @@ import yaml
 
 
 class ACG(nn.Module):
-    def __init__(self, config_path) -> None:
+    def __init__(self, config) -> None:
         super().__init__()
-        with open(config_path) as f:
-            self.config = yaml.load(f, Loader=yaml.FullLoader)
+        self.config = config
 
         self.inn = self.build_inn()
         self.ndim_total = int(self.config["ACG"]["struct"]["input_size"]) * 1

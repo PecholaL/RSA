@@ -15,7 +15,7 @@ ACG:
 RSA:
   struct:
     basic:
-      cinnb_nums: 1
+      cinnb_nums: 2
     cinnblock:
       channel: 40
       clamp: 1.5

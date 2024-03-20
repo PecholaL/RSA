@@ -35,9 +35,8 @@ class CinnBlock(nn.Module):
         x2 = x2.to(torch.float32)
         cond = cond.to(torch.float32)
         # transform shape of condition: [B,1,192]->[B,1,cond_trans]->[B,C,cond_trans]
-        cond_t = self.cond_layer(cond)
+        cond_t = self.cond_layer(cond).unsqueeze(1)
         cond_t = nn.functional.pad(cond_t, (0, x1.shape[2] - cond_t.shape[2]), value=0)
-        print("cond_t_padding.shape: ", cond_t.shape)
         if not rev:
             t2 = self.phi(x2)
             t2i = torch.cat((t2, cond_t), dim=1)
