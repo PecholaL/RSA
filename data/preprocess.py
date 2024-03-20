@@ -22,7 +22,15 @@ if __name__ == "__main__":
     out_path = config["out_path"]
     sample_rate = config["sample_rate"]
     audio_limit_len = config["audio_limit_len"]
-    audio_segment_len = config["audio_segment_len"]
+    mel_segment_len = config["mel_segment_len"]
+    sample_offset = config["sample_offset"]
+
+    preemph = config["preemph"]
+    n_mels = config["n_mels"]
+    n_fft = config["n_fft"]
+    hop_size = config["hop_size"]
+    win_size = config["win_size"]
+    f_min = config["f_min"]
 
     data = []  # save all audio signal
 
@@ -41,18 +49,30 @@ if __name__ == "__main__":
         audio, _, _ = read_resample(
             audio_path=audio_path, sr=sample_rate, audio_limit_len=None
         )
-        audio_len = audio_len_second(audio, sample_rate)
-        sample_num = int(audio_len / audio_segment_len)
-        for j in range(sample_num):
-            audio_segment = audio[j * sample_rate : (j + 1) * sample_rate]
-            data.append(audio_segment)
+        mel = get_mel(
+            audio,
+            preemph,
+            sample_rate,
+            n_mels,
+            n_fft,
+            hop_size,
+            win_size,
+            f_min,
+        )  # mel shape: [T, n_mels]
+        j = 0
+        while True:
+            if j + mel_segment_len > mel.shape[0]:
+                break
+            mel_segment = mel[j : j + mel_segment_len]
+            j = j + sample_offset
+            data.append(mel_segment)
         print(
-            f"[Dataset]processed {i+1} audio file(s), got {len(data)} training sample(s)",
+            f"[Dataset]processed {i+1} audio file(s), got {len(data)} mel-sprectrogram sample(s)",
             end="\r",
         )
     print()
 
     # Dump Pickle
-    with open(os.path.join(out_path, "audio.pkl"), "wb") as f:
+    with open(os.path.join(out_path, "audio_mel.pkl"), "wb") as f:
         pickle.dump(data, f)
-        print(f"[Dataset]dumped pickle to {os.path.join(out_path, 'audio.pkl')}")
+        print(f"[Dataset]dumped pickle to {os.path.join(out_path, 'audio_mel.pkl')}")

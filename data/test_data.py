@@ -9,7 +9,7 @@ from scipy.io.wavfile import write
 from utils import *
 from dataset import SAdataset, get_data_loader, infinite_iter
 
-pickle_path = "../SpkAno/miniSAdata_pickle/audio.pkl"
+pickle_path = "../SpkAno/miniSAdata_pickle/audio_mel.pkl"
 
 # Load pickle dataset
 with open(pickle_path, "rb") as f:

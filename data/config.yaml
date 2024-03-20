@@ -3,5 +3,14 @@ data_path: '/Users/pecholalee/Coding/SpkAno/miniSAdataset' # Modify it!
 out_path: '/Users/pecholalee/Coding/SpkAno/miniSAdata_pickle' # Modify it!
 sample_rate: 16000
 audio_limit_len: 10 # unit: second
-audio_segment_len: 1 # unit: second
+mel_segment_len: 200 # unit: frame
 asv_audio_segment_len: 3 # unit: second
+sample_offset: 50 # unit: frame
+
+# For mel-spectrogram
+preemph: 0.98
+n_mels: 80
+n_fft: 1024
+hop_size: 256
+win_size: 1024
+f_min: 0

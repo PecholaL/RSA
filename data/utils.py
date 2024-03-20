@@ -7,6 +7,7 @@ import soundfile
 import librosa
 import resampy
 import numpy
+from scipy.signal import lfilter
 
 """ Get single-channel audio and resample to 16kHz
 """
@@ -38,3 +39,23 @@ def read_resample(audio_path, sr=16000, audio_limit_len=None):
 
 def audio_len_second(audio, sr):
     return 1.0 * len(audio) / sr
+
+
+def get_mel(
+    x: numpy.ndarray,
+    preemph: float,
+    sample_rate: int,
+    n_mels: int,
+    n_fft: int,
+    hop_length: int,
+    win_length: int,
+    f_min: int,
+) -> numpy.ndarray:
+    x = lfilter([1, -preemph], [1], x)
+    magnitude = numpy.abs(
+        librosa.stft(y=x, n_fft=n_fft, hop_length=hop_length, win_length=win_length)
+    )
+    mel_fb = librosa.filters.mel(sr=sample_rate, n_fft=n_fft, n_mels=n_mels, fmin=f_min)
+    mel_spec = numpy.dot(mel_fb, magnitude)
+    log_mel_spec = numpy.log(mel_spec + 1e-9)
+    return log_mel_spec.T  # shape(T, n_mels)
