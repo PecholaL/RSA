@@ -16,6 +16,7 @@ RSA:
   struct:
     basic:
       cinnb_nums: 2
+      key_len: 512
     cinnblock:
       channel: 40
       clamp: 1.5
@@ -31,9 +32,9 @@ RSA:
     init_scale: 0.03
     batch_size: 1
     num_workers: 0
-    beta1: 
-    beta2:
-    eps:
+    beta1: 0.5
+    beta2: 0.999
+    eps: 1e-6
     lr: 1e-8
     weight_decay: 1e-5
     decay_by: 0.01

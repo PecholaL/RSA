@@ -10,6 +10,7 @@ from data.dataset import SAdataset, get_data_loader, infinite_iter
 
 from models.RSA import RSA
 from models.ACG import ACG
+from models.utils import *
 
 
 """ Device
@@ -33,8 +34,18 @@ with open(model_config_path) as f:
 
 """ Prepare Data
 """
+key_len = config["RSA"]["struct"]["basic"]["key_len"]
 batch_size = config["RSA"]["training"]["batch_size"]
 num_workers = config["RSA"]["training"]["num_workers"]
+acg_cond = cc(
+    torch.tensor(
+        [
+            [
+                0,
+            ]
+        ]
+    ).to(torch.float32)
+)
 dataset = SAdataset(pickle_path=dataset_path)
 dataLoader = get_data_loader(
     dataset=dataset,
@@ -49,8 +60,8 @@ print("[RSA]Infinite dataloader is built. ")
 
 """ Build Model
 """
-acg = ACG(config)
-rsa = RSA(config)
+acg = cc(ACG(config))
+rsa = cc(RSA(config))
 print("[RSA]ACG and RSA is built. ")
 print("[RSA]Total para count: {}. ".format(sum(x.numel() for x in rsa.parameters())))
 
@@ -80,9 +91,8 @@ print("[RSA]Optimizer is built. ")
 """ Loss
 """
 # consistant loss
-criterion_consistant = nn.MSELoss()
+criterion_consistance = nn.MSELoss()
 # triplet loss
-# restore loss
 
 
 """##########################################Training
@@ -92,7 +102,7 @@ n_iterations = config["RSA"]["training"]["n_iterations"]
 summary_steps = config["RSA"]["training"]["summary_steps"]
 autosave_steps = config["RSA"]["training"]["autosave_steps"]
 
-consistant_loss_history = []
+consistance_loss_history = []
 triplet_loss_history = []
 restore_loss_history = []
 lambda_1 = config["RSA"]["training"]["lambda_1"]
@@ -102,7 +112,58 @@ lambda_3 = config["RSA"]["training"]["lambda_3"]
 for iter in range(n_iterations):
     # get data
     orig_spk_emb, mel = next(train_iter)
-
-
-torch.save(rsa.state_dict(), f"{save_path}/rsa.ckpt")
-torch.save(optim.state_dict(), f"{save_path}/optim.opt")
+    orig_spk_emb = orig_spk_emb.to(torch.float32)
+    mel = mel.to(torch.float32)
+    key = torch.randn(batch_size, 1, key_len).to(torch.float32)
+    # load to device
+    orig_spk_emb = cc(orig_spk_emb)
+    mel = cc(mel)
+    key = cc(key)
+    # get condition
+    cond, _ = acg(key, acg_cond)
+    # forward & backward processes of cINN
+    mel_ano = rsa(mel, cond)
+    mel_res = rsa(mel_ano, cond, True)
+    mel_recon = rsa(mel, orig_spk_emb)
+    # test
+    # if iter == 0:
+    #     print("key.shape: ", key.shape)
+    #     print("acg_cond.shape: ", acg_cond.shape)
+    #     print("cond.shape: ", cond.shape)
+    #     print("orig_spk_emb.shape: ", orig_spk_emb.shape)
+    #     print("mel.shape: ", mel.shape)
+    #     print("mel_ano.shape: ", mel_ano.shape)
+    #     print("mel_res.shape: ", mel_res.shape)
+    #     print("mel_recon.shape: ", mel_recon.shape)
+    #     print("mel", mel[0][0][:10])
+    #     print("mel_res", mel_res[0][0][:10])
+    #     print("mel_ano", mel_ano[0][0][:10])
+    #     print("mel_recon", mel_recon[0][0][:10])
+    # calculate losses
+    consistance_loss = criterion_consistance(mel, mel_recon)
+    # restore_loss = criterion_restore(mel, mel_res)
+    triplet_loss = 0
+    # save losses
+    consistance_loss_history.append(consistance_loss)
+    # restore_loss_history.append(restore_loss)
+    triplet_loss_history.append(triplet_loss)
+    # total loss
+    total_loss = lambda_1 * consistance_loss  # + lambda_2 * triplet_loss
+    # nn backward
+    total_loss.backward()
+    optim.step()
+    optim.zero_grad()
+    # logging
+    print(
+        f"[RSA]:[{iter+1}/{n_iterations}]",
+        f"loss_consistance={consistance_loss.item():6f}",
+        # f"loss_ident={triplet_loss_loss.item():6f}",
+        end="\r",
+    )
+    # summary
+    if (iter + 1) % summary_steps == 0 or iter + 1 == n_iterations:
+        print()
+    # autosave
+    if (iter + 1) % autosave_steps == 0 or iter + 1 == n_iterations:
+        torch.save(rsa.state_dict(), f"{save_path}/rsa.ckpt")
+        torch.save(optim.state_dict(), f"{save_path}/optim.opt")

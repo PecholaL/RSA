@@ -2,6 +2,7 @@
     * parameters initializer
 """
 
+import torch
 import torch.nn as nn
 import torch.nn.init as init
 
@@ -24,3 +25,9 @@ def initialize_weights(net_l, scale=1):
             elif isinstance(m, nn.BatchNorm2d):
                 init.constant_(m.weight, 1)
                 init.constant_(m.bias.data, 0.0)
+
+
+# load data/net to device
+def cc(x):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    return x.to(device)
