@@ -31,3 +31,18 @@ def initialize_weights(net_l, scale=1):
 def cc(x):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     return x.to(device)
+
+
+# triplet loss
+# define triplet loss functionclass triplet_loss(nn.Module):
+class TripletLoss(nn.Module):
+    def __init__(self, margin):
+        super(TripletLoss, self).__init__()
+        self.margin = margin
+
+    def forward(self, anchor, positive, negative):
+        pos_dist = (anchor - positive).pow(2).sum(1)
+        neg_dist = (anchor - negative).pow(2).sum(1)
+        loss = nn.functional.relu(pos_dist - neg_dist + self.margin)
+        # loss = neg_dist
+        return loss.mean()

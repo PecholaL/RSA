@@ -22,6 +22,17 @@ RSA:
       clamp: 1.5
       cond_len: 192
       cond_trans: 128
+    SpkEnc:
+      c_in: 80
+      c_h: 64
+      c_out: 64
+      c_bank: 64
+      kernel_size: 5
+      n_conv_blocks: 6
+      n_dense_blocks: 6
+      subsample: [1, 2, 1, 2, 1, 2]
+      act: 'relu'
+      dropout_rate: 0
     # level: 2
     # c_in: 512
     # c_mid: 512
@@ -32,15 +43,18 @@ RSA:
     init_scale: 0.03
     batch_size: 1
     num_workers: 0
-    beta1: 0.5
+    cl_margin: 0.4
+    beta1: 0.9
     beta2: 0.999
     eps: 1e-6
-    lr: 1e-8
+    lr: 1e-5
     weight_decay: 1e-5
-    decay_by: 0.01
+    weight_step: 5000
+    gamma: 0.95
+    grad_norm: 5
     lambda_1: 1
     lambda_2: 1
-    lambda_3: 1
+    # lambda_3: 1
     n_iterations: 5
     summary_steps: 2
     autosave_steps: 5
