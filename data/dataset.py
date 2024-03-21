@@ -14,8 +14,10 @@ class CollateFn(object):
         pass
 
     def __call__(self, batch):
-        tensor = torch.from_numpy(numpy.array(batch)).float()
-        return tensor
+        emb, mel = zip(*batch)
+        emb = torch.from_numpy(numpy.array(emb))  # [B, len_emb]
+        mel = torch.from_numpy(numpy.array(mel)).transpose(1, 2)  # [B,n_mels,T]
+        return emb, mel
 
 
 class SAdataset(Dataset):
@@ -24,8 +26,8 @@ class SAdataset(Dataset):
             self.data = pickle.load(f)
 
     def __getitem__(self, index):
-        audio_stft = self.data[index]
-        return audio_stft
+        emb, mel = self.data[index]
+        return emb, mel
 
     def __len__(self):
         return len(self.data)

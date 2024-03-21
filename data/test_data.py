@@ -25,9 +25,10 @@ sample_rate = config["sample_rate"]
 # Check DataLoader
 dataset = SAdataset(pickle_path=pickle_path)
 dataLoader = get_data_loader(
-    dataset=dataset, batch_size=16, shuffle=False, num_workers=0, drop_last=False
+    dataset=dataset, batch_size=4, shuffle=False, num_workers=0, drop_last=False
 )
 train_iter = infinite_iter(dataLoader)
 print(f"[test]built infinite dataloader")
-d = next(train_iter)
-print(f"[test]data shape: {d.shape}")  # [batch, sr * audio_limit_len]
+e, m = next(train_iter)
+print(f"[test]mel shape: {m.shape}")
+print(f"[test]emb shape: {e.shape}")

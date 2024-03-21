@@ -1,7 +1,6 @@
 """ 1st stage training: Anonymization Condition Generator
 """
 
-import numpy
 import torch
 import torch.optim
 import yaml

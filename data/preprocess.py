@@ -1,15 +1,24 @@
-""" Process audio data
+""" Process Audio Data
     * Read from .wav files
+    * Get mel spectrograms
+    * Get spk embeddings
     * Build Dataset
 """
 
 import os
 import pickle
 import random
+import sys
+import torchaudio
 import yaml
 
 from utils import *
 
+sys.path.append("..")
+sys.path.append("/Users/pecholalee/Coding/RSA")
+from speech_brain_proxy import EncoderClassifier
+
+asv = EncoderClassifier.from_hparams(source="speechbrain/spkrec-ecapa-voxceleb")
 
 if __name__ == "__main__":
     config_path = "./data/config.yaml"
@@ -49,6 +58,8 @@ if __name__ == "__main__":
         audio, _, _ = read_resample(
             audio_path=audio_path, sr=sample_rate, audio_limit_len=None
         )
+        audio_t, _ = torchaudio.load(audio_path)
+        spk_emb = asv.encode_batch(audio_t).squeeze().numpy()
         mel = get_mel(
             audio,
             preemph,
@@ -64,8 +75,8 @@ if __name__ == "__main__":
             if j + mel_segment_len > mel.shape[0]:
                 break
             mel_segment = mel[j : j + mel_segment_len]
+            data.append((spk_emb, mel_segment))
             j = j + sample_offset
-            data.append(mel_segment)
         print(
             f"[Dataset]processed {i+1} audio file(s), got {len(data)} mel-sprectrogram sample(s)",
             end="\r",
