@@ -33,12 +33,6 @@ RSA:
       subsample: [1, 2, 1, 2, 1, 2]
       act: 'relu'
       dropout_rate: 0
-    # level: 2
-    # c_in: 512
-    # c_mid: 512
-    # c_out: 512
-    # cc_layers: 2
-    # n_blocks: 1
   training:
     init_scale: 0.03
     batch_size: 1
@@ -54,7 +48,6 @@ RSA:
     grad_norm: 5
     lambda_1: 1
     lambda_2: 1
-    # lambda_3: 1
     n_iterations: 5
     summary_steps: 2
     autosave_steps: 5

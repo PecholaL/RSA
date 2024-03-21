@@ -18,6 +18,8 @@ The first training stage is for ACG. Use the preprocessed .pkl which contains lo
 `python3 ./train_ACG.py`
 
 #### RSA
+The training of RSA needs two pre-trained models: ACG and the speaker encoder. The pre-trained SpkEnc is taken from AutoVC. Modify the paths to .ckpt, .yaml, etc. in `./train_RSA.py`. Then excute:
+`python3 ./train_RSA.py`
 
 
 ## Inference
