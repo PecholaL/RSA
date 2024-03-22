@@ -7,6 +7,7 @@ import yaml
 
 from models.ACG import ACG
 from data.dataset import SAdataset, get_data_loader, infinite_iter
+from models.utils import *
 from speech_brain_proxy import EncoderClassifier
 
 config_path = "./models/config.yaml"
@@ -16,7 +17,9 @@ pickle_path = "../SpkAno/miniSAdata_pickle/acg_audio.pkl"
 # _____________________________
 
 # Build Model
-acg = ACG(config_path=config_path)
+with open(config_path) as f:
+    config = yaml.load(f, Loader=yaml.FullLoader)
+acg = cc(ACG(config))
 print("[RSA](stage 1): ACG is built. ")
 print(
     "[RSA](stage 1): total parameter count: {}".format(
