@@ -53,6 +53,7 @@ acg_cond = cc(
         ]
     ).to(torch.float32)
 )
+acg_cond = acg_cond.repeat(batch_size, 1)
 dataset = SAdataset(pickle_path=dataset_path)
 dataLoader = get_data_loader(
     dataset=dataset,
@@ -140,13 +141,15 @@ for iter in range(n_iterations):
     orig_spk_emb = orig_spk_emb.to(torch.float32)
     mel = mel.to(torch.float32)
     mel_ = mel_.to(torch.float32)
-    key = torch.randn(batch_size, 1, key_len).to(torch.float32)
+    key = torch.randn(batch_size, key_len).to(torch.float32)
     # load to device
     orig_spk_emb = cc(orig_spk_emb)
     mel = cc(mel)
     key = cc(key)
     # get condition
-    cond, _ = acg(key, acg_cond)
+    # print(key.shape, acg_cond.shape) # torch.Size([B, 192]) torch.Size([B, 1])
+    cond, _ = acg.reverse_sample(key, acg_cond)
+    cond = cond.squeeze()
     # forward & backward processes of cINN
     mel_ano = rsa(mel, cond)
     # mel_res = rsa(mel_ano, cond, True)

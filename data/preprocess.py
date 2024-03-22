@@ -84,6 +84,6 @@ if __name__ == "__main__":
     print()
 
     # Dump Pickle
-    with open(os.path.join(out_path, "audio_mel.pkl"), "wb") as f:
+    with open(os.path.join(out_path, "mel_emb.pkl"), "wb") as f:
         pickle.dump(data, f)
-        print(f"[Dataset]dumped pickle to {os.path.join(out_path, 'audio_mel.pkl')}")
+        print(f"[Dataset]dumped pickle to {os.path.join(out_path, 'mel_emb.pkl')}")
