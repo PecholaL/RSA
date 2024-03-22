@@ -12,7 +12,6 @@ from speech_brain_proxy import EncoderClassifier
 config_path = "./models/config.yaml"
 ckpt_path = "../SpkAno/RSA_data/save/acg.ckpt"
 pickle_path = "../SpkAno/miniSAdata_pickle/acg_audio.pkl"
-asv_ckpt_path = "../SpkAno/RSA_data/save/asv.ckpt"
 
 # _____________________________
 
