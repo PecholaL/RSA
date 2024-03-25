@@ -44,16 +44,6 @@ with open(model_config_path) as f:
 key_len = config["RSA"]["struct"]["basic"]["key_len"]
 batch_size = config["RSA"]["training"]["batch_size"]
 num_workers = config["RSA"]["training"]["num_workers"]
-acg_cond = cc(
-    torch.tensor(
-        [
-            [
-                0,
-            ]
-        ]
-    ).to(torch.float32)
-)
-acg_cond = acg_cond.repeat(batch_size, 1)
 dataset = SAdataset(pickle_path=dataset_path)
 dataLoader = get_data_loader(
     dataset=dataset,
@@ -69,6 +59,7 @@ print("[RSA]Infinite dataloader is built. ")
 """ Build Model
 """
 acg = cc(ACG(config))
+acg.eval()
 rsa = cc(RSA(config))
 print("[RSA]ACG and RSA is built. ")
 print("[RSA]Total para count: {}. ".format(sum(x.numel() for x in rsa.parameters())))
@@ -141,13 +132,22 @@ for iter in range(n_iterations):
     orig_spk_emb = orig_spk_emb.to(torch.float32)
     mel = mel.to(torch.float32)
     mel_ = mel_.to(torch.float32)
+    acg_cond = torch.tensor(
+        [
+            [
+                0,
+            ]
+        ]
+    ).to(torch.float32)
+    acg_cond = acg_cond.repeat(batch_size, 1)
     key = torch.randn(batch_size, key_len).to(torch.float32)
     # load to device
     orig_spk_emb = cc(orig_spk_emb)
     mel = cc(mel)
+    acg_cond = cc(acg_cond)
     key = cc(key)
     # get condition
-    # print(key.shape, acg_cond.shape) # torch.Size([B, 192]) torch.Size([B, 1])
+    # print(key.shape, acg_cond.shape)  # torch.Size([B, 192]) torch.Size([B, 1])
     cond, _ = acg.reverse_sample(key, acg_cond)
     cond = cond.squeeze()
     # forward & backward processes of cINN
