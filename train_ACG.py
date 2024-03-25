@@ -67,6 +67,7 @@ for i in range(n_iterations):
             ]
         ]
     )  # static condition (i.e. no condition)
+    cond = cc(cond.repeat(input_data.shape[0])).to(torch.float32)
 
     """forward"""
     z, log_j = acg(input_data, cond)
