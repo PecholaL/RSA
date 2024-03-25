@@ -12,7 +12,7 @@ from speech_brain_proxy import EncoderClassifier
 
 config_path = "./models/config.yaml"
 ckpt_path = "../SpkAno/RSA_data/save/acg.ckpt"
-pickle_path = "../SpkAno/miniSAdata_pickle/acg_audio.pkl"
+pickle_path = "../SpkAno/miniSAdata_pickle/audio_mel.pkl"
 
 # _____________________________
 
@@ -58,16 +58,17 @@ print("[RSA](stage 1): DataLoader is built. ")
 # Training
 for i in range(n_iterations):
     """data"""
-    data = next(train_iter).to(torch.float32)  # .cuda()
-    input_data = asv.encode_batch(data)  # get x-vector
-    cond = cond = torch.tensor(
+    input_data, _ = next(train_iter)
+    # input_data = cc(asv.encode_batch(data))  # get x-vector
+    cond = torch.tensor(
         [
             [
-                0,
+                1,
             ]
         ]
     )  # static condition (i.e. no condition)
-    cond = cc(cond.repeat(input_data.shape[0])).to(torch.float32)
+    input_data = cc(input_data).to(torch.float32)  # .cuda()
+    cond = cc(cond.repeat(input_data.shape[0], 1)).to(torch.float32)
 
     """forward"""
     z, log_j = acg(input_data, cond)
@@ -89,7 +90,7 @@ for i in range(n_iterations):
     """log"""
     nll_mean.append(nll.item())
     print(
-        f"[RSA](stage 1): [{i}/{n_iterations}]",
+        f"[RSA](stage 1): [{i+1}/{n_iterations}]",
         f"loss={nll.item():6f}",
         end="\r",
     )
