@@ -101,7 +101,7 @@ print("[RSA]Optimizer is built. ")
 """ Loss
 """
 # consistant loss
-criterion_consistance = nn.L1Loss()
+criterion_consistence = nn.L1Loss()
 # triplet loss
 cl_margin = config["RSA"]["training"]["cl_margin"]
 criterion_triplet = TripletLoss(cl_margin)
@@ -117,7 +117,7 @@ n_iterations = config["RSA"]["training"]["n_iterations"]
 summary_steps = config["RSA"]["training"]["summary_steps"]
 autosave_steps = config["RSA"]["training"]["autosave_steps"]
 
-consistance_loss_history = []
+consistence_loss_history = []
 triplet_loss_history = []
 restore_loss_history = []
 lambda_1 = config["RSA"]["training"]["lambda_1"]
@@ -166,16 +166,16 @@ for iter in range(n_iterations):
     #     print("mel_recon.shape: ", mel_recon.shape)
     #     print("mel_ts.shape: ", mel_ts.shape)
     # calculate losses
-    consistance_loss = criterion_consistance(mel, mel_recon)
+    consistence_loss = criterion_consistence(mel, mel_recon)
     anchor_emb = d_vec_enc(mel.transpose(1, 2))
     positive_emb = d_vec_enc(mel_.transpose(1, 2))
     negative_emb = d_vec_enc(mel_ano.transpose(1, 2))
     triplet_loss = criterion_triplet(anchor_emb, positive_emb, negative_emb)
     # save losses
-    consistance_loss_history.append(consistance_loss)
+    consistence_loss_history.append(consistence_loss)
     triplet_loss_history.append(triplet_loss)
     # total loss
-    total_loss = lambda_1 * consistance_loss + lambda_2 * triplet_loss
+    total_loss = lambda_1 * consistence_loss + lambda_2 * triplet_loss
     # nn backward
     optim.zero_grad()
     total_loss.backward()
@@ -187,7 +187,7 @@ for iter in range(n_iterations):
     # logging
     print(
         f"[RSA]:[{iter+1}/{n_iterations}]",
-        f"loss_consistance={consistance_loss.item():6f}",
+        f"loss_consistence={consistence_loss.item():6f}",
         f"loss_triplet={triplet_loss.item():6f}",
         end="\r",
     )
