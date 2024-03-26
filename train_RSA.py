@@ -139,8 +139,8 @@ for iter in range(n_iterations):
             ]
         ]
     ).to(torch.float32)
-    acg_cond = acg_cond.repeat(batch_size, 1)
-    key = torch.randn(batch_size, key_len).to(torch.float32)
+    acg_cond = acg_cond.repeat(mel.shape[0], 1)
+    key = torch.randn(mel.shape[0], key_len).to(torch.float32)
     # load to device
     orig_spk_emb = cc(orig_spk_emb)
     mel = cc(mel)
