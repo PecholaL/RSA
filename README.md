@@ -1,4 +1,8 @@
 # RSA
+[![](https://img.shields.io/badge/LICENSE-Apache_2.0-yellow?style=flat)](https://github.com/PecholaL/RSA/blob/main/LICENSE) 
+[![](https://img.shields.io/badge/AI-speech-pink?style=flat)](https://github.com/PecholaL/RSA) 
+[![](https://img.shields.io/badge/Pechola_L-blue?style=flat)](https://github.com/PecholaL)  
+
 Restorable Speaker Anonymization via Invertible Neural Network
 
 ## Training
