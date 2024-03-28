@@ -8,9 +8,9 @@ Restorable Speaker Anonymization via Invertible Neural Network
 ## Training
 ### Data Processing
 1. Modify `./data/config.yaml` according to the location of your prepared dataset.
-2. Preprocess the .wav files, build Dataset and dump into pickle:
+2. Preprocess the .wav files, build Dataset and dump into pickle:  
     `python3 ./data/preprocess.py`
-3. Test your Dataset and DataLoader:
+3. Test your Dataset and DataLoader:  
     `python3 ./data/test_data.py`
 
 ### Model Building & Training
@@ -22,19 +22,21 @@ The first training stage is for ACG. Use the preprocessed .pkl which contains lo
 `python3 ./train_ACG.py`
 
 #### RSA
-The training of RSA needs two pre-trained models: ACG and the speaker encoder. The pre-trained SpkEnc is taken from AutoVC. Modify the paths to .ckpt, .yaml, etc. in `./train_RSA.py`. Then excute:
+The training of RSA needs two pre-trained models: ACG and the speaker encoder. The pre-trained SpkEnc is taken from AutoVC. Modify the paths to .ckpt, .yaml, etc. in `./train_RSA.py`. Then excute:  
 `python3 ./train_RSA.py`
 
 
 ## Inference
-### Anonymization
-
-### Restoring
+### Anonymization & Restoration
+After the two-stage training of RSA, the anonymization and restoration processes can be conducted with a pre-trained vocoder (like [Hifi-GAN](https://github.com/jik876/hifi-gan)). Modify the *paths* in `./inference.py`, including the paths of the original .wav file, output path, pre-trained models' .ckpt. Then excute:  
+`python3 ./inference.py`
 
 ## Thanks
-[SpeechBrain](https://github.com/speechbrain/speechbrain)
-[FrEIA](https://github.com/vislearn/FrEIA)
-[cINN](https://github.com/vislearn/conditional_INNs)
+[SpeechBrain](https://github.com/speechbrain/speechbrain)  
+[FrEIA](https://github.com/vislearn/FrEIA)  
+[cINN](https://github.com/vislearn/conditional_INNs)  
+[Hifi-GAN](https://github.com/jik876/hifi-gan)  
 
 
 ## Citation
+coming soon
